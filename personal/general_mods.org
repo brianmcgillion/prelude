@@ -1,0 +1,467 @@
+#+STARTUP: overview
+
+* Repos
+* Interface tweaks
+#+BEGIN_SRC emacs-lisp
+;; Theme is defined in preload/theme.el
+;;(package-install 'monokai-theme)
+(prelude-require-packages '(sr-speedbar))
+
+; enable semantic
+(semantic-mode 1)
+(global-semantic-stickyfunc-mode 1)
+
+; Use semantic symbols for tpeedbar
+(add-hook 'speedbar-load-hook (lambda () (require 'semantic/sb)))
+
+(setq sr-speedbar-right-side nil) ; set sr-speedbar to open on the left
+(setq speedbar-show-unknown-files t)
+
+(setq select-enable-clipboard t)
+
+(custom-set-variables '(speedbar-show-unknown-files t))
+
+(add-hook 'before-save-hook 'whitespace-cleanup)
+
+(require 'ansi-color)
+(defun display-ansi-colors ()
+  (interactive)
+  (ansi-color-apply-on-region (point-min) (point-max)))
+
+#+END_SRC
+* Code
+#+BEGIN_SRC emacs-lisp
+  (prelude-require-packages '(dtrt-indent flycheck-pyflakes elogcat ggtags))
+  (setq byte-compile-warnings nil)
+
+  ; Enable the dtrt-indent mode by default to determine the indentation for code
+  (dtrt-indent-mode 1)
+
+  '(safe-local-variable-values
+    (quote
+     ((eval c-set-offset
+            (quote arglist-close)
+            0)
+      (eval c-set-offset
+            (quote arglist-intro)
+            (quote ++))
+      (eval c-set-offset
+            (quote case-label)
+            0)
+      (eval c-set-offset
+            (quote statement-case-open)
+            0)
+      (eval c-set-offset
+            (quote substatement-open)
+            0))))
+#+END_SRC
+* General
+#+BEGIN_SRC emacs-lisp
+(prelude-require-packages '(google-translate gnutls vlf))
+
+(setenv "NO_PROXY" "127.0.0.1")
+(setenv "no_proxy" "127.0.0.1")
+
+(fset 'yes-or-no-p 'y-or-n-p)
+(global-set-key (kbd "<f5>") 'revert-buffer)
+
+(require 'gnutls)
+(add-to-list 'gnutls-trustfiles "/usr/local/etc/openssl/cert.pem")
+
+; see if this needs to be hidden behind some OS specific test
+(setq mac-right-option-modifier nil)
+
+;; Fast navigation
+(global-set-key (kbd "s-<left>") 'scroll-down-command)
+(global-set-key (kbd "s-<right>") 'scroll-up-command)
+(global-set-key (kbd "s-<up>") 'beginning-of-buffer)
+(global-set-key (kbd "s-<down>") 'end-of-buffer)
+
+
+;; Store some more frequently used files in the
+(set-register ?t '(file . "~/Documents/org/todo.org"))
+(set-register ?d '(file . "~/Documents/org/decrypt.org"))
+(set-register ?e '(file . "~/.emacs.d/personal/general_mods.org"))
+(set-register ?l '(file . "~/Documents/Papers/library.bib"))
+
+;; Add handlers for certain extensions
+(add-to-list 'auto-mode-alist '("\\.te\\'" . m4-mode))
+
+;; Add support for very large files
+(require 'vlf-setup)
+
+#+END_SRC
+* Prelude
+#+BEGIN_SRC emacs-lisp
+
+(setq projectile-enable-caching t)
+(setq prelude-whitespace nil)
+
+(setq projectile-indexing-method 'hybrid)
+(setq projectile-generic-command "fd . -0")
+
+#+END_SRC
+* Helm-gtags
+#+BEGIN_SRC emacs-lisp
+(prelude-require-packages '(helm-gtags))
+
+(require 'helm-gtags)
+
+(setq
+ helm-gtags-ignore-case t
+ helm-gtags-auto-update t
+ helm-gtags-use-input-at-cursor t
+ helm-gtags-pulse-at-cursor t
+ helm-gtags-prefix-key "\C-t"
+ helm-gtags-suggested-key-mapping t
+ )
+
+;; Enable helm-gtags-mode in Dired so you can jump to any tag
+;; when navigate project tree with Dired
+(add-hook 'dired-mode-hook 'helm-gtags-mode)
+
+;; Enable helm-gtags-mode in Eshell for the same reason as above
+(add-hook 'eshell-mode-hook 'helm-gtags-mode)
+
+;; Enable helm-gtags-mode in languages that GNU Global supports
+(add-hook 'c-mode-hook 'helm-gtags-mode)
+(add-hook 'c++-mode-hook 'helm-gtags-mode)
+(add-hook 'java-mode-hook 'helm-gtags-mode)
+(add-hook 'asm-mode-hook 'helm-gtags-mode)
+
+;;                                   "M-."   'helm-gtags-find-tag-from-here
+;; key bindings
+(with-eval-after-load 'helm-gtags
+  ;;(define-key helm-gtags-mode-map (kbd "C-c g a") 'helm-gtags-tags-in-this-function)
+  (define-key helm-gtags-mode-map (kbd "C-j") 'helm-gtags-select)
+  (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-dwim)
+  (define-key helm-gtags-mode-map (kbd "M-?") 'helm-gtags-find-files)
+  (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)
+  (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
+  (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history))
+
+(provide 'setup-helm-gtags)
+#+END_SRC
+* Literature
+- Setup PDF and referencing
+- To use this, make sure the paths in literature-update, literature-add,
+and the helm-bibtex configurations are all correct
+
+#+BEGIN_SRC emacs-lisp
+(prelude-require-packages '(helm-bibtex org-ref bibtex-utils biblio pdf-tools interleave))
+(pdf-tools-install)
+
+(require 'auth-source)
+(require 'helm-bibtex)
+
+(require 'org-ref)
+(require 'doi-utils)
+(require 'org-ref-pdf)
+(require 'org-ref-url-utils)
+(require 'org-ref-latex)
+(require 'org-ref-bibtex)
+(require 'org-ref-pubmed)
+(require 'org-ref-arxiv)
+(require 'org-ref-sci-id)
+(require 'org-ref-isbn)
+(require 'bibtex-utils)
+(require 'x2bib)
+(require 'biblio)
+(require 'interleave)
+
+(add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
+
+;;Helm-bibtex configuration options
+(setq bibtex-completion-bibliography "~/Documents/Papers/library.bib")
+(setq bibtex-completion-library-path "~/Documents/Papers/pdf")
+(setq bibtex-completion-notes-path "~/Documents/Papers/notes.org")
+(setq bibtex-completion-notes-extension ".org")
+(setq bibtex-completion-additional-search-fields '(journal))
+
+;; This tell bibtex-completion to look at the File field of the bibtex
+;; entry to figure out which pdf to open
+(setq bibtex-completion-pdf-field "file")
+
+(setq reftex-default-bibliography '("~/Documents/Papers/library.bib"))
+
+(setq org-ref-open-pdf-function 'org-ref-get-mendeley-filename)
+
+;; see org-ref for use of these variables
+(setq org-ref-bibliography-notes "~/Documents/Papers/notes.org"
+      org-ref-default-bibliography '("~/Documents/Papers/library.bib")
+      org-ref-pdf-directory "~/Documents/Papers/pdf")
+
+(setq interleave-org-notes-dir-list '("~/Documents/Papers/notes.org" "~/Documents/Papers/pdf"))
+
+;; Add notes to annotated bibliography (or edit existing notes) with C-c 9
+(setq bibtex-completion-notes-template-one-file
+      (format
+       "\n** ${author} (${year}): ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :INTERLEAVE_PDF: %s\n  :END:\n\n" (file-name-nondirectory "${file}")))
+
+
+#+END_SRC
+* ORG
+#+BEGIN_SRC emacs-lisp
+(prelude-require-packages '(org-plus-contrib ob-translate org-pomodoro))
+
+;; setup org protocol for system wide setup
+(require 'org-protocol)
+(require 'org-capture)
+
+;; Allow for inline tasks - i.e. tasks that are not headers
+(require 'org-inlinetask)
+
+
+(setq org-startup-indented t)
+
+
+; Setup org mode templates to refile all the notes
+(setq org-directory "~/Documents/org")
+(setq org-agenda-files (append '("~/Documents/Papers")
+                               (file-expand-wildcards (concat org-directory "/*.org"))))
+
+(setq org-default-notes-file (concat org-directory "/refile.org"))
+
+;; max levels to show for refiling
+(setq org-refile-targets '((org-agenda-files . (:maxlevel . 6))))
+
+;; Perform lazy searches in ORG, usign space as boolean
+(setq org-agenda-search-view-always-boolean t)
+
+;; use C-c c to start capture mode
+(global-set-key (kbd "C-c c") 'org-capture)
+
+
+;; Capture templates for: TODO tasks, Notes
+(setq org-capture-templates
+      (quote (("c" "Code" item (file org-default-notes-file)
+               " %A %?\n")
+              ("t" "Todo" entry (file org-default-notes-file)
+               "* TODO %?\n")
+              ("n" "Note" entry (file org-default-notes-file)
+               "* %? :NOTE:\n")
+              ("f" "File" entry (file org-default-notes-file)
+               "* %F :FILE:\n" :immediate-finish t)
+              ("w" "Web" entry (file org-default-notes-file)
+               "* %c :website:\n%U %?%:initial")
+              ("p" "Protocol" entry (file org-default-notes-file)
+               "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?" :empty-lines 1)
+              ("L" "Protocol Link" entry (file org-default-notes-file)
+               "* %? [[%:link][%:description]] \nCaptured On: %U" :empty-lines 1))))
+
+(setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "DONE")))
+
+;; archive the entries in a file called archive in the current directory
+(setq org-archive-location "archive.org_archive::datetree/")
+
+;; recursively find .org files in provided directory
+;; modified from an Emacs Lisp Intro example
+(defun find-org-file-recursively (&optional directory filext)
+  "Return .org and .org_archive files recursively from DIRECTORY.
+   If FILEXT is provided, return files with extension FILEXT instead."
+  (interactive "DDirectory: ")
+  (let* (org-file-list
+	 (case-fold-search t)	      ; filesystems are case sensitive
+	 (file-name-regex "^[^.#].*") ; exclude dot, autosave, and backup files
+	 (filext (or filext "org$\\\|org_archive"))
+	 (fileregex (format "%s\\.\\(%s$\\)" file-name-regex filext))
+	 (cur-dir-list (directory-files directory t file-name-regex)))
+    ;; loop over directory listing
+    (dolist (file-or-dir cur-dir-list org-file-list) ; returns org-file-list
+      (cond
+       ((file-regular-p file-or-dir) ; regular files
+	(if (string-match fileregex file-or-dir) ; org files
+	    (add-to-list 'org-file-list file-or-dir)))
+       ((file-directory-p file-or-dir)
+	(dolist (org-file (find-org-file-recursively file-or-dir filext)
+			  org-file-list) ; add files found to result
+	  (add-to-list 'org-file-list org-file)))))))
+
+(setq org-agenda-text-search-extra-files
+      (append (find-org-file-recursively "~/Documents/org/")
+              (find-org-file-recursively "~/Documents/Papers/")))
+
+;; create new nodes during the refile
+(setq org-refile-allow-creating-parent-nodes 'confirm)
+
+;; Allow for a new file to be used to create a refile target
+;;(setq org-refile-use-outline-path 'file)
+
+;; use syntax highlighting in org code blocks
+(setq org-src-fontify-natively t)
+
+;; this line activates ditaa
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((awk . t)
+   (C . t)
+   (ditaa . t)
+   (dot . t)
+   (emacs-lisp . t)
+   (latex . t)
+   (makefile . t)
+   (org . t)
+   (python . t)
+   (sed . t)
+   (shell . t)
+   (translate . t)
+   ))
+
+(use-package org-clock
+             :config
+             (progn
+               (add-hook 'org-clock-in-prepare-hook
+                         'my-org-mode-ask-effort)
+
+               (defun my-org-mode-ask-effort ()
+                 "Ask for an effort estimate when clocking in."
+                 (unless (org-entry-get (point) org-effort-property)
+                   (let ((effort
+                          (completing-read
+                           (format "%s: " org-effort-property)
+                           (org-entry-get-multivalued-property (point) org-effort-property))))
+                     (unless (equal effort "")
+                       (org-set-property org-effort-property effort)))))
+               ))
+#+END_SRC
+* RSS
+Setup elfeed to read RSS and Atom feeds
+#+BEGIN_SRC emacs-lisp
+(prelude-require-packages '(elfeed elfeed-goodies elfeed-org))
+;; Use org to configure rss feeds
+(require 'elfeed-org)
+
+(setq elfeed-db-directory "~/Documents/org/elfeed_db")
+
+(defun elfeed-mark-all-as-read ()
+      (interactive)
+      (mark-whole-buffer)
+      (elfeed-search-untag-all-unread))
+
+;;functions to support syncing .elfeed between machines
+;;makes sure elfeed reads index from disk before launching
+(defun bjm/elfeed-load-db-and-open ()
+  "Wrapper to load the elfeed db from disk before opening"
+  (interactive)
+  (elfeed-db-load)
+  (elfeed)
+  (elfeed-search-update--force))
+
+;; overload the elfeed keybinding to load the database
+(global-set-key (kbd "C-x w") 'bjm/elfeed-load-db-and-open)
+
+
+;;write to disk when quiting
+(defun bjm/elfeed-save-db-and-bury ()
+  "Wrapper to save the elfeed db to disk before burying buffer"
+  (interactive)
+  (elfeed-db-save)
+  (quit-window))
+
+(defalias 'elfeed-toggle-star
+  (elfeed-expose #'elfeed-search-toggle-all 'star))
+
+(eval-after-load 'elfeed-search
+  '(define-key elfeed-search-mode-map (kbd "m") 'elfeed-toggle-star))
+
+(defun bjm/elfeed-show-all ()
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump "elfeed-all"))
+(defun bjm/elfeed-show-security ()
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump "elfeed-security"))
+(defun bjm/elfeed-show-linux ()
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump "elfeed-linux"))
+(defun bjm/elfeed-show-technology ()
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump "elfeed-technology"))
+(defun bjm/elfeed-show-emacs ()
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump "elfeed-emacs"))
+(defun bjm/elfeed-show-news ()
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump "elfeed-news"))
+
+(use-package elfeed
+  :ensure t
+  :bind (:map elfeed-search-mode-map
+	      ("q" . bjm/elfeed-save-db-and-bury)
+	      ("Q" . bjm/elfeed-save-db-and-bury)
+	      ("m" . elfeed-toggle-star)
+	      ("M" . elfeed-toggle-star)
+            ("A" . bjm/elfeed-show-all)
+            ("S" . bjm/elfeed-show-security)
+            ("L" . bjm/elfeed-show-linux)
+            ("T" . bjm/elfeed-show-technology)
+            ("E" . bjm/elfeed-show-emacs)
+            ("N" . bjm/elfeed-show-news)
+	    )
+  )
+
+(use-package elfeed-goodies
+  :ensure t
+  :config
+  (elfeed-goodies/setup)
+  (setq elfeed-goodies/entry-pane-position 'bottom))
+
+(use-package elfeed-org
+  :ensure t
+  :config
+  (elfeed-org)
+  (setq rmh-elfeed-org-files (list (concat org-directory "/elfeed.org")))
+  (setq rmh-elfeed-org-tree-id "elfeed"))
+
+;; Setup elfeed for rss and atom feeds
+(global-set-key (kbd "C-x w") 'elfeed)
+
+(defun elfeed-mark-read ()
+  (interactive)
+  (elfeed-search-untag-all 'unread)
+  (previous-line)
+  (elfeed-search-tag-all 'read))
+
+(define-key elfeed-search-mode-map (kbd "r") 'elfeed-mark-read)
+
+(defface security-tag '((t :foreground "red")) "Marks Security tags.")
+(defface comics-tag '((t :foreground "magenta")) "Marks Comics tags.")
+(defface technology-tag '((t :foreground "gold")) "Marks technology tags.")
+(defface linux-tag '((t :foreground "green")) "Marks linux tags.")
+(defface news-tag '((t :foreground "white")) "Marks news tags.")
+(defface read-tag '((t :foreground "violet")) "Marks read tags.")
+
+;; TODO how to push multiple entries in cleaner way?
+(push '(security security-tag)
+ elfeed-search-face-alist)
+(push '(comics comics-tag)
+ elfeed-search-face-alist)
+(push '(technology technology-tag)
+ elfeed-search-face-alist)
+(push '(linux linux-tag)
+ elfeed-search-face-alist)
+(push '(news news-tag)
+ elfeed-search-face-alist)
+(push '(read read-tag)
+ elfeed-search-face-alist)
+#+END_SRC
+* GPG
+#+BEGIN_SRC emacs-lisp
+(setq epg-gpg-program "gpg2")
+(setenv "GPG_AGENT_INFO" nil)
+
+(require 'org-crypt)
+(org-crypt-use-before-save-magic)
+(setq org-tags-exclude-from-inheritance (quote ("crypt")))
+;; GPG key to use for encryption
+;; Either the Key ID or set to nil to use symmetric encryption.
+(setq org-crypt-key "43B5C76A3E26ADB7D6EEEB3D8CEEF0F04B6AC009")
+
+;; quick decrypt key
+(global-set-key (kbd "C-x C-g") 'org-decrypt-entry)
+#+END_SRC
