@@ -1,7 +1,7 @@
 ;;(require 'monokai-theme)
 ;;(package-install 'monokai-theme)
 
-(setq monokai-background "#000000")
+;;(setq monokai-background "#000000")
 
 ;; (setq ;; foreground and background
 ;;  monokai-foreground     "#F8F8F2"

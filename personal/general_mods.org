@@ -1,32 +1,243 @@
 #+STARTUP: overview
 
-* Repos
+* All Packages
+#+BEGIN_SRC emacs-lisp
+
+  ;; NEEDS
+  ;; M-x all-the-icons-install-fonts
+  ;; From QUELPA
+  ;; (prelude-require-packages '(better-jumper))
+  ;;  dotenv-mode (ELPA)
+  ;;  helpful (ELPA) ;; Is this helpful
+  ;; hide-mode-line (ELPA)
+  ;;  highlight-escape-sequences (QUELPA)
+  ;; + highlight-numbers (ELPA)
+  ;; hydra (ELPA)
+  ;;  xclip (ELPA)
+  ;;  dired-k (ELPA)
+  ;; + doom-modeline (ELPA)
+  ;; + doom-themes (ELPA)
+
+  ;; + flycheck-cask (ELPA)
+  ;; + flycheck-popup-tip (ELPA)
+  ;; + flyspell-correct (ELPA)
+  ;; + flyspell-correct-helm (ELPA)
+
+  ;; ;; HELM
+  ;;  helm-company (ELPA)
+  ;;  helm-dash (ELPA)
+  ;;  helm-c-yasnippet (ELPA)
+  ;; helm-describe-modes (QUELPA)
+  ;; helm-xref (ELPA)
+  ;;  swiper-helm (ELPA)
+
+  ;; ;;Code
+  ;;  ccls (ELPA)
+  ;; + company-dict (ELPA)
+  ;; + company-math (ELPA)
+  ;; + company-prescient (ELPA)
+  ;; + company-reftex (ELPA)
+  ;; + company-shell (ELPA)
+  ;; + cuda-mode (ELPA)
+  ;; + demangle-mode (ELPA)
+  ;; dumb-jump (ELPA) ;; do we need this with HELM
+  ;; emacs-snippets (QUELPA) ;; do we want all of this from doom emacs
+  ;; forge (ELPA)
+  ;; format-all (ELPA)
+  ;; git-link (ELPA)
+  ;; + haxor-mode (ELPA)
+  ;;  makefile-executor (ELPA)
+  ;; meghanada (ELPA)
+  ;;  nasm-mode (ELPA)
+  ;;  modern-cpp-font-lock (ELPA)
+  ;;  nose (ELPA)
+  ;; + quickrun (ELPA)
+  ;; + pip-requirements (ELPA)
+  ;; + pipenv (ELPA)
+  ;; + pyenv-mode (ELPA)
+  ;; + python-pytest (ELPA)
+  ;; + pyvenv (ELPA)
+  ;; (push '("/LICENSE\\'" . text-mode) auto-mode-alist)
+
+  ;; ;;UI
+  ;; nav-flash (ELPA)
+  ;; ranger (ELPA)
+  ;; + winum (ELPA)
+  ;;  rotate-text (QUELPA)
+  ;; + persp-mode (ELPA)
+
+  ;; ;; reversing
+  ;; disaster (ELPA)
+
+  ;; ;;pdf
+  ;; latex-preview-pane (ELPA)
+
+  ;; ;; MAYBE someday
+  ;; ;; magit-todos (ELPA)
+
+  ;; ;; Tune elfeed
+
+#+END_SRC
+
+* OS
+#+BEGIN_SRC emacs-lisp
+  ;; (defconst IS-MAC     (eq system-type 'darwin))
+  ;; (defconst IS-LINUX   (eq system-type 'gnu/linux))
+
+
+  ;; ;; clipboard
+  ;; (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
+
+  ;; ;; fewer opts to process for systems that don't need them
+  ;; (unless IS-MAC   (setq command-line-ns-option-alist nil))
+  ;; (unless IS-LINUX (setq command-line-x-option-alist nil))
+
+  ;; ;; Fix the clipboard in terminal or daemon Emacs (non-GUI)
+  ;; (defun doom|init-clipboard-in-tty-emacs ()
+  ;;   (if IS-MAC
+  ;;       (if (require 'osx-clipboard nil t) (osx-clipboard-mode))
+  ;;     (if (require 'xclip nil t) (xclip-mode))))
+  ;; (add-hook 'tty-setup-hook #'doom|init-clipboard-in-tty-emacs)
+
+  ;; ;; Enable mouse in terminal Emacs
+  ;; (add-hook 'tty-setup-hook #'xterm-mouse-mode)
+
+  ;; ;; stop copying each visual state move to the clipboard:
+  ;; ;; https://bitbucket.org/lyro/evil/issue/336/osx-visual-state-copies-the-region-on
+  ;; ;; grokked from: http://stackoverflow.com/questions/15873346/elisp-rename-macro
+  ;; (advice-add #'evil-visual-update-x-selection :override #'ignore)
+
+  ;; (cond (IS-MAC
+  ;;        (setq mac-command-modifier 'super
+  ;;              mac-option-modifier  'meta
+  ;;              ;; sane trackpad/mouse scroll settings
+  ;;              mac-redisplay-dont-reset-vscroll t
+  ;;              mac-mouse-wheel-smooth-scroll nil
+  ;;              mouse-wheel-scroll-amount '(5 ((shift) . 2))  ; one line at a time
+  ;;              mouse-wheel-progressive-speed nil             ; don't accelerate scrolling
+  ;;              ;; Curse Lion and its sudden but inevitable fullscreen mode!
+  ;;              ;; NOTE Meaningless to railwaycat's emacs-mac build
+  ;;              ns-use-native-fullscreen nil
+  ;;              ;; Visit files opened outside of Emacs in existing frame, rather
+  ;;              ;; than a new one
+  ;;              ns-pop-up-frames nil)
+
+  ;;        ;; Syncs ns frame parameters with theme (and fixes mismatching text color
+  ;;        ;; in the frame title)
+  ;;        (when (and (or (daemonp)
+  ;;                       (display-graphic-p))
+  ;;                   (require 'ns-auto-titlebar nil t))
+  ;;          (add-hook 'doom-load-theme-hook #'ns-auto-titlebar-mode)))
+
+  ;;       (IS-LINUX
+  ;;        (setq x-gtk-use-system-tooltips nil    ; native tooltips are ugly!
+  ;;              x-underline-at-descent-line t))  ; draw underline lower
+
+  ;;       (IS-WINDOWS
+  ;;        (setq w32-get-true-file-attributes nil) ; fix file io slowdowns
+  ;;        (when (display-graphic-p)
+  ;;          (setenv "GIT_ASKPASS" "git-gui--askpass"))))
+
+
+
+#+END_SRC
+
+* DOOM UI
+#+BEGIN_SRC emacs-lisp
+
+  ;; (defun doom|init-ui ()
+  ;;   "Initialize Doom's user interface by applying all its advice and hooks."
+  ;;   (run-hook-wrapped 'doom-init-ui-hook #'doom-try-run-hook)
+
+  ;;   (add-to-list 'kill-buffer-query-functions #'doom|protect-fallback-buffer nil 'eq)
+  ;;   (add-hook 'after-change-major-mode-hook #'doom|highlight-non-default-indentation)
+
+  ;;   ;; Reload theme if the display device has changed
+  ;;   (add-hook 'after-make-frame-functions #'doom|reload-theme-in-frame-maybe)
+  ;;   (add-hook 'after-delete-frame-functions #'doom|reload-theme-maybe)
+
+  ;;   ;; Initialize custom switch-{buffer,window,frame} hooks:
+  ;;   ;; + `doom-switch-buffer-hook'
+  ;;   ;; + `doom-switch-window-hook'
+  ;;   ;; + `doom-switch-frame-hook'
+  ;;   (add-hook 'buffer-list-update-hook #'doom|run-switch-window-hooks)
+  ;;   (add-hook 'focus-in-hook #'doom|run-switch-frame-hooks)
+  ;;   (advice-add! '(switch-to-buffer display-buffer) :around #'doom*run-switch-buffer-hooks))
+
+  ;; ;; Apply `doom-theme'
+  ;; (unless (daemonp)
+  ;;   (add-hook 'doom-init-ui-hook #'doom|init-theme))
+  ;; ;; Apply `doom-font' et co
+  ;; (add-hook 'doom-after-init-modules-hook #'doom|init-fonts)
+  ;; ;; Setup `doom-load-theme-hook'
+  ;; (advice-add #'load-theme :after #'doom*run-load-theme-hooks)
+
+  ;; (add-hook 'window-setup-hook #'doom|init-ui)
+
+
+
+#+END_SRC
 * Interface tweaks
 #+BEGIN_SRC emacs-lisp
-;; Theme is defined in preload/theme.el
-;;(package-install 'monokai-theme)
-(prelude-require-packages '(sr-speedbar))
+;; include the list of icons
+(prelude-require-packages '(all-the-icons all-the-icons-dired unicode-fonts treemacs treemacs-projectile helm-describe-modes))
+(prelude-require-packages '(monokai-theme))
+; Global settings (defaults)
+;; (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+;;       doom-themes-enable-italic t) ; if nil, italics is universally disabled
 
-; enable semantic
-(semantic-mode 1)
-(global-semantic-stickyfunc-mode 1)
+ ;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each theme
+ ;; may have their own settings.
+;; (load-theme 'doom-one t)
 
-; Use semantic symbols for tpeedbar
-(add-hook 'speedbar-load-hook (lambda () (require 'semantic/sb)))
 
-(setq sr-speedbar-right-side nil) ; set sr-speedbar to open on the left
-(setq speedbar-show-unknown-files t)
+ ;; or for treemacs users
+;; (doom-themes-treemacs-config)
 
-(setq select-enable-clipboard t)
+;; Corrects (and improves) org-mode's native fontification.
+;;(doom-themes-org-config)
+;;(require 'monokai)
+;;(load-theme 'monokai t)
 
-(custom-set-variables '(speedbar-show-unknown-files t))
+;;(setq prelude-theme 'monokai)
 
-(add-hook 'before-save-hook 'whitespace-cleanup)
 
-(require 'ansi-color)
-(defun display-ansi-colors ()
-  (interactive)
-  (ansi-color-apply-on-region (point-min) (point-max)))
+** Unicode Font setup
+;;;###autoload
+(defun +unicode|init-fonts ()
+  "Set up `unicode-fonts' to eventually run; accomodating the daemon, if
+necessary."
+  (setq-default bidi-display-reordering t
+                doom-unicode-font nil)
+  (if initial-window-system
+      (+unicode|setup-fonts (selected-frame))
+    (add-hook 'after-make-frame-functions #'+unicode|setup-fonts)))
+
+;;;###autoload
+(defun +unicode|setup-fonts (&optional frame)
+  "Initialize `unicode-fonts', if in a GUI session."
+  (when (and frame (display-graphic-p frame))
+    (with-selected-frame frame
+      (require 'unicode-fonts)
+      ;; NOTE will impact startup time on first run
+      (unicode-fonts-setup))))
+
+
+(+unicode|init-fonts)
+
+** Generic UI tweaks
+  ; enable semantic
+  (semantic-mode 1)
+  (global-semantic-stickyfunc-mode 1)
+
+  (setq select-enable-clipboard t)
+
+  (add-hook 'before-save-hook 'whitespace-cleanup)
+
+  (require 'ansi-color)
+  (defun display-ansi-colors ()
+    (interactive)
+    (ansi-color-apply-on-region (point-min) (point-max)))
 
 #+END_SRC
 * Code
@@ -103,7 +314,10 @@
 #+END_SRC
 * Helm-gtags
 #+BEGIN_SRC emacs-lisp
-(prelude-require-packages '(helm-gtags))
+;; HELM
+  ;; helm-describe-modes (QUELPA)
+
+(prelude-require-packages '(helm-gtags helm-company helm-dash helm-c-yasnippet helm-xref swiper-helm helm-swoop))
 
 (require 'helm-gtags)
 
@@ -203,6 +417,14 @@ and the helm-bibtex configurations are all correct
 * ORG
 #+BEGIN_SRC emacs-lisp
 (prelude-require-packages '(org-plus-contrib ob-translate org-pomodoro))
+
+(prelude-require-packages '(org-bullets toc-org))
+
+(prelude-require-packages '(ob-async ob-mongo ob-sql-mode org-download org-pdfview org-tree-slide ox-clip ox-pandoc))
+
+(require 'org-bullets)
+(require 'toc-org)
+(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1) (toc-org-mode 1)))
 
 ;; setup org protocol for system wide setup
 (require 'org-protocol)
