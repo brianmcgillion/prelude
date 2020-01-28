@@ -1,6 +1,9 @@
 #+STARTUP: overview
 
 * Repos
+#+BEGIN_SRC emacs-lisp
+(setq debug-on-error t)
+#+END_SRC
 * Interface tweaks
 #+BEGIN_SRC emacs-lisp
 ;; Theme is defined in preload/theme.el
@@ -59,6 +62,11 @@
 (setq python-shell-interpreter "python3")
 (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
 (setq anaconda-mode-localhost-address "localhost")
+
+#+END_SRC
+* Docker
+#+BEGIN_SRC  emacs-lisp
+(prelude-require-packages '(docker-tramp))
 
 #+END_SRC
 * General
