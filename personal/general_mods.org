@@ -10,14 +10,14 @@
 ;;(package-install 'monokai-theme)
 (prelude-require-packages '(sr-speedbar))
 
-; enable semantic
+;; enable semantic
 (semantic-mode 1)
 (global-semantic-stickyfunc-mode 1)
 
-; Use semantic symbols for tpeedbar
+;; Use semantic symbols for tpeedbar
 (add-hook 'speedbar-load-hook (lambda () (require 'semantic/sb)))
 
-(setq sr-speedbar-right-side nil) ; set sr-speedbar to open on the left
+(setq sr-speedbar-right-side nil) ;; set sr-speedbar to open on the left
 (setq speedbar-show-unknown-files t)
 
 (setq select-enable-clipboard t)
@@ -62,6 +62,13 @@
 (setq python-shell-interpreter "python3")
 (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
 (setq anaconda-mode-localhost-address "localhost")
+
+;;; Docker
+(use-package docker
+  :commands docker-mode)
+
+(use-package dockerfile-mode
+  :mode "Dockerfile\\'")
 
 #+END_SRC
 * Docker
@@ -234,127 +241,333 @@ and the helm-bibtex configurations are all correct
 #+END_SRC
 * ORG
 #+BEGIN_SRC emacs-lisp
-(prelude-require-packages '(org-plus-contrib ob-translate org-pomodoro))
+  (prelude-require-packages '(org-plus-contrib ob-translate org-cliplink))
 
-;; setup org protocol for system wide setup
-(require 'org-protocol)
-(require 'org-capture)
+  ;; Allow for inline tasks - i.e. tasks that are not headers
+  (require 'org-inlinetask)
 
-;; Allow for inline tasks - i.e. tasks that are not headers
-(require 'org-inlinetask)
+  (require 'org-agenda)
 
+  (setq org-startup-indented t)
 
-(setq org-startup-indented t)
+  ;; Perform lazy searches in ORG, usign space as boolean
+  (setq org-agenda-search-view-always-boolean t)
 
+  ;; use C-c c to start capture mode
+  (require 'org-capture)
+  (global-set-key (kbd "C-c c") 'org-capture)
 
-; Setup org mode templates to refile all the notes
-(setq org-directory "~/Documents/org")
-(setq org-agenda-files (append '("~/Documents/Papers")
-                               (file-expand-wildcards (concat org-directory "/*.org"))))
-
-(setq org-default-notes-file (concat org-directory "/refile.org"))
-
-;; max levels to show for refiling
-(setq org-refile-targets '((org-agenda-files . (:maxlevel . 6))))
-
-;; Perform lazy searches in ORG, usign space as boolean
-(setq org-agenda-search-view-always-boolean t)
-
-;; use C-c c to start capture mode
-(global-set-key (kbd "C-c c") 'org-capture)
+  (use-package org-cliplink
+    :bind
+    ("C-c C" . 'bmg/org-capture-link)
+    :config
+    (defun bmg/org-capture-link ()
+      "Captures a link, and stores it in inbox."
+      (interactive)
+      (org-capture nil "l")))
 
 
-;; Capture templates for: TODO tasks, Notes
-(setq org-capture-templates
-      (quote (("c" "Code" item (file org-default-notes-file)
-               " %A %?\n")
-              ("t" "Todo" entry (file org-default-notes-file)
-               "* TODO %?\n")
-              ("n" "Note" entry (file org-default-notes-file)
-               "* %? :NOTE:\n")
-              ("f" "File" entry (file org-default-notes-file)
-               "* %F :FILE:\n" :immediate-finish t)
-              ("w" "Web" entry (file org-default-notes-file)
-               "* %c :website:\n%U %?%:initial")
-              ("p" "Protocol" entry (file org-default-notes-file)
-               "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?" :empty-lines 1)
-              ("L" "Protocol Link" entry (file org-default-notes-file)
-               "* %? [[%:link][%:description]] \nCaptured On: %U" :empty-lines 1))))
+  ;; Setup org mode templates to refile all the notes
+  (setq org-directory "~/Documents/org")
 
-(setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "DONE")))
+  (require 'find-lisp)
 
-;; archive the entries in a file called archive in the current directory
-(setq org-archive-location "archive.org_archive::datetree/")
+  (setq bmg/org-agenda-directory (concat org-directory "/gtd/"))
+  (setq org-agenda-files
+      (find-lisp-find-files bmg/org-agenda-directory "\.org$"))
 
-;; recursively find .org files in provided directory
-;; modified from an Emacs Lisp Intro example
-(defun find-org-file-recursively (&optional directory filext)
-  "Return .org and .org_archive files recursively from DIRECTORY.
-   If FILEXT is provided, return files with extension FILEXT instead."
-  (interactive "DDirectory: ")
-  (let* (org-file-list
-	 (case-fold-search t)	      ; filesystems are case sensitive
-	 (file-name-regex "^[^.#].*") ; exclude dot, autosave, and backup files
-	 (filext (or filext "org$\\\|org_archive"))
-	 (fileregex (format "%s\\.\\(%s$\\)" file-name-regex filext))
-	 (cur-dir-list (directory-files directory t file-name-regex)))
-    ;; loop over directory listing
-    (dolist (file-or-dir cur-dir-list org-file-list) ; returns org-file-list
-      (cond
-       ((file-regular-p file-or-dir) ; regular files
-	(if (string-match fileregex file-or-dir) ; org files
-	    (add-to-list 'org-file-list file-or-dir)))
-       ((file-directory-p file-or-dir)
-	(dolist (org-file (find-org-file-recursively file-or-dir filext)
-			  org-file-list) ; add files found to result
-	  (add-to-list 'org-file-list org-file)))))))
+  (setq org-default-notes-file (concat bmg/org-agenda-directory "/inbox.org"))
 
-(setq org-agenda-text-search-extra-files
-      (append (find-org-file-recursively "~/Documents/org/")
-              (find-org-file-recursively "~/Documents/Papers/")))
+  ;; ;; max levels to show for refiling
+  ;; (setq org-refile-targets '((org-agenda-files . (:maxlevel . 6))))
 
-;; create new nodes during the refile
-(setq org-refile-allow-creating-parent-nodes 'confirm)
+  ;; ;
+                                          ; setup org protocol for system wide setup
+  (require 'org-protocol)
 
-;; Allow for a new file to be used to create a refile target
-;;(setq org-refile-use-outline-path 'file)
+  ;; Capture templates for: TODO tasks, Notes
+  (setq org-capture-templates
+        (quote ( ("t" "Todo" entry (file org-default-notes-file)
+                 "* TODO %?\n")
+                 ("l" "link" entry (file ,(concat jethro/org-agenda-directory "inbox.org"))
+                 "* TODO %(org-cliplink-capture)" :immediate-finish t)
+                 ("f" "File" entry (file org-default-notes-file)
+                 "* TODO %F :FILE:\n" :immediate-finish t)
+                 ("p" "Protocol" entry (file org-default-notes-file)
+                 "* TODO %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?\n\n" :immediate-finish t)
+                 ("L" "Protocol Link" entry (file org-default-notes-file)
+                 "* TODO %? [[%:link][%:description]] \nCaptured On: %U\n\n" :immediate-finish t)
+                 ("w" "Weekly Review" entry (file+olp+datetree ,(concat bmg/org-agenda-directory "reviews.org"))
+                 (file ,(concat bmg/org-agenda-directory "templates/weekly_review.org"))))))
 
-;; use syntax highlighting in org code blocks
-(setq org-src-fontify-natively t)
+  (setq bmg/org-agenda-reading-view
+       `("r" "Reading" todo ""
+               ((org-agenda-files '(,(concat bmg/org-agenda-directory "reading.org"))))))
 
-;; this line activates ditaa
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((awk . t)
-   (C . t)
-   (ditaa . t)
-   (dot . t)
-   (emacs-lisp . t)
-   (latex . t)
-   (makefile . t)
-   (org . t)
-   (python . t)
-   (sed . t)
-   (shell . t)
-   (translate . t)
-   ))
+  (add-to-list 'org-agenda-custom-commands `,bmg/org-agenda-reading-view)
 
-(use-package org-clock
-             :config
-             (progn
-               (add-hook 'org-clock-in-prepare-hook
-                         'my-org-mode-ask-effort)
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+          (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)")))
 
-               (defun my-org-mode-ask-effort ()
-                 "Ask for an effort estimate when clocking in."
-                 (unless (org-entry-get (point) org-effort-property)
-                   (let ((effort
-                          (completing-read
-                           (format "%s: " org-effort-property)
-                           (org-entry-get-multivalued-property (point) org-effort-property))))
-                     (unless (equal effort "")
-                       (org-set-property org-effort-property effort)))))
-               ))
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
+  (setq org-log-state-notes-insert-after-drawers nil)
+
+  (setq org-tag-alist (quote (("@errand" . ?e)
+                              ("@office" . ?o)
+                              ("@home" . ?h)
+                              (:newline)
+                              ("WAITING" . ?w)
+                              ("HOLD" . ?H)
+                              ("CANCELLED" . ?c))))
+
+
+  (setq org-refile-use-outline-path 'file
+      org-outline-path-complete-in-steps nil)
+  (setq org-refile-allow-creating-parent-nodes 'confirm)
+  (setq org-refile-targets '(("next.org" :level . 0)
+                            ("someday.org" :level . 0)
+                            ("reading.org" :level . 1)
+                            ("projects.org" :maxlevel . 1)))
+
+
+  (defvar bmg/org-agenda-bulk-process-key ?f
+    "Default key for bulk processing inbox items.")
+
+  (defun bmg/org-process-inbox ()
+    "Called in org-agenda-mode, processes all inbox items."
+    (interactive)
+    (org-agenda-bulk-mark-regexp "inbox:")
+    (bmg/bulk-process-entries))
+
+  (defvar bmg/org-current-effort "1:00" "Current effort for agenda items.")
+
+  (defun bmg/my-org-agenda-set-effort (effort)
+      "Set the effort property for the current headline."
+      (interactive
+          (list (read-string (format "Effort [%s]: " bmg/org-current-effort) nil nil bmg/org-current-effort)))
+      (setq bmg/org-current-effort effort)
+      (org-agenda-check-no-diary)
+      (let* ((hdmarker (or (org-get-at-bol 'org-hd-marker)
+             (org-agenda-error)))
+             (buffer (marker-buffer hdmarker))
+             (pos (marker-position hdmarker))
+             (inhibit-read-only t)
+             newhead)
+            (org-with-remote-undo buffer
+             (with-current-buffer buffer
+              (widen)
+              (goto-char pos)
+              (org-show-context 'agenda)
+              (funcall-interactively 'org-set-effort nil bmg/org-current-effort)
+              (end-of-line 1)
+              (setq newhead (org-get-heading)))
+             (org-agenda-change-all-lines newhead hdmarker))))
+
+    (defun bmg/org-agenda-process-inbox-item ()
+        "Process a single item in the org-agenda."
+        (org-with-wide-buffer
+            (org-agenda-set-tags)
+            (org-agenda-priority)
+            (call-interactively 'bmg/my-org-agenda-set-effort)
+            (org-agenda-refile nil nil t)))
+
+    (defun bmg/bulk-process-entries ()
+        (if (not (null org-agenda-bulk-marked-entries))
+            (let ((entries (reverse org-agenda-bulk-marked-entries))
+                  (processed 0)
+                  (skipped 0))
+                 (dolist (e entries)
+                  (let ((pos (text-property-any (point-min) (point-max) 'org-hd-marker e)))
+                       (if (not pos)
+                        (progn (message "Skipping removed entry at %s" e)
+                               (cl-incf skipped))
+                        (goto-char pos)
+                        (let (org-loop-over-headlines-in-active-region) (funcall 'bmg/org-agenda-process-inbox-item))
+                        ;; `post-command-hook' is not run yet.  We make sure any
+                        ;; pending log note is processed.
+                        (when (or (memq 'org-add-log-note (default-value 'post-command-hook))
+                                  (memq 'org-add-log-note post-command-hook))
+                              (org-add-log-note))
+                              (cl-incf processed))))
+                              (org-agenda-redo)
+                              (unless org-agenda-persistent-marks (org-agenda-bulk-unmark-all))
+                              (message "Acted on %d entries%s%s"
+                              processed
+                              (if (= skipped 0)
+                              ""
+                                  (format ", skipped %d (disappeared before their turn)"
+                                  skipped))
+                              (if (not org-agenda-persistent-marks) "" " (kept marked)")))))
+
+  (defun bmg/org-inbox-capture ()
+      (interactive)
+      "Capture a task in agenda mode."
+      (org-capture nil "i"))
+
+  (setq org-agenda-bulk-custom-functions `((,bmg/org-agenda-bulk-process-key bmg/org-agenda-process-inbox-item)))
+
+  (define-key org-agenda-mode-map "i" 'org-agenda-clock-in)
+  (define-key org-agenda-mode-map "r" 'bmg/org-process-inbox)
+  (define-key org-agenda-mode-map "R" 'org-agenda-refile)
+  (define-key org-agenda-mode-map "c" 'bmg/org-inbox-capture)
+
+
+  (defun bmg/set-todo-state-next ()
+      "Visit each parent task and change NEXT states to TODO"
+      (org-todo "NEXT"))
+
+  (add-hook 'org-clock-in-hook 'bmg/set-todo-state-next 'append)
+
+  (use-package org-clock-convenience
+    :bind (:map org-agenda-mode-map
+              ("<S-up>" . org-clock-convenience-timestamp-up)
+              ("<S-down>" . org-clock-convenience-timestamp-down)
+              ("o" . org-clock-convenience-fill-gap)
+              ("e" . org-clock-convenience-fill-gap-both)))
+
+  (setq org-agenda-block-separator nil)
+  (setq org-agenda-start-with-log-mode t)
+
+  (setq bmg/org-agenda-todo-view
+    `(" " "Agenda"
+      ((agenda ""
+               ((org-agenda-span 'day)
+                (org-deadline-warning-days 365)))
+       (todo "TODO"
+             ((org-agenda-overriding-header "To Refile")
+              (org-agenda-files '(,(concat bmg/org-agenda-directory "inbox.org")))))
+       (todo "NEXT"
+             ((org-agenda-overriding-header "In Progress")
+              (org-agenda-files '(,(concat bmg/org-agenda-directory "someday.org")
+                                  ,(concat bmg/org-agenda-directory "projects.org")
+                                  ,(concat bmg/org-agenda-directory "next.org")))
+              ;; (org-agenda-skip-function '(org-agenda-skip-entry-if 'deadline 'scheduled))
+              ))
+       (todo "TODO"
+             ((org-agenda-overriding-header "Projects")
+              (org-agenda-files '(,(concat bmg/org-agenda-directory "projects.org")))
+              ;; (org-agenda-skip-function #'bmg/org-agenda-skip-all-siblings-but-first)
+              ))
+       (todo "TODO"
+             ((org-agenda-overriding-header "One-off Tasks")
+              (org-agenda-files '(,(concat bmg/org-agenda-directory "next.org")))
+              (org-agenda-skip-function '(org-agenda-skip-entry-if 'deadline 'scheduled))))
+       nil)))
+
+  (add-to-list 'org-agenda-custom-commands `,bmg/org-agenda-todo-view)
+
+  (defun bmg/org-agenda-skip-all-siblings-but-first ()
+  "Skip all but the first non-done entry."
+      (let (should-skip-entry)
+      (unless (or (org-current-is-todo)
+                  (not (org-get-scheduled-time (point))))
+              (setq should-skip-entry t))
+      (save-excursion
+            (while (and (not should-skip-entry) (org-goto-sibling t))
+             (when (org-current-is-todo)
+              (setq should-skip-entry t))))
+      (when should-skip-entry
+            (or (outline-next-heading)
+                (goto-char (point-max))))))
+
+  (defun org-current-is-todo ()
+      (string= "TODO" (org-get-todo-state)))
+
+  (defun bmg/switch-to-agenda ()
+    (interactive)
+    (org-agenda nil " "))
+
+  (bind-key "<f1>" 'bmg/switch-to-agenda)
+
+  (setq org-columns-default-format "%40ITEM(Task) %Effort(EE){:} %CLOCKSUM(Time Spent) %SCHEDULED(Scheduled) %DEADLINE(Deadline)")
+
+  (use-package org-pomodoro
+    :after org
+    :bind
+    (:map org-agenda-mode-map
+        (("I" . org-pomodoro)))
+        :custom
+    (org-pomodoro-format "%s"))
+
+
+  ;; use syntax highlighting in org code blocks
+  (setq org-src-fontify-natively t)
+
+  ;; this line activates ditaa
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((awk . t)
+     (C . t)
+     (ditaa . t)
+     (dot . t)
+     (emacs-lisp . t)
+     (latex . t)
+     (makefile . t)
+     (org . t)
+     (python . t)
+     (sed . t)
+     (shell . t)
+     (translate . t)
+     ))
+
+  ;;https://org-roam.readthedocs.io/en/develop/configuration/
+  (use-package org-roam
+        :after org
+        :load-path "~/.emacs.d/elisp/org-roam"
+        :hook
+        ((org-mode . org-roam-mode)
+         (after-init . org-roam--build-cache-async))
+        :custom
+        (org-roam-directory (concat org-directory "/roam"))
+        :bind
+        ("C-c z l" . org-roam)
+        ("C-c z f" . org-roam-find-file)
+        ("C-c z g" . org-roam-show-graph)
+        ("C-c z i" . org-roam-insert))
+
+  ;;Distinguish internal Roam links from external links
+  (setq org-roam-link-title-format "R:%s")
+
+  ;; Visualize the relationships with notes
+  (setq org-roam-graphviz-executable "/usr/bin/dot")
+
+  ;;Search the files and manage them better with deft
+  (use-package deft
+    :after org
+    :bind
+    ("C-c z d" . deft)
+    :custom
+    (deft-recursive t)
+    (deft-use-filter-string-for-filename t)
+    (deft-default-extension "org")
+    (deft-directory (concat org-directory "/roam")))
+
+  ;;Org-journal is a more powerful alternative to the simple function org-roam-today
+  (use-package org-journal
+    :bind
+    ("C-c z j" . org-journal-new-entry)
+    ("C-c z t" . org-journal-today)
+    :custom
+    (org-journal-date-prefix "#+TITLE: ")
+    (org-journal-file-format "%Y-%m-%d.org")
+    (org-journal-dir (concat org-directory "/roam"))
+    (org-journal-date-format "%A, %d %B %Y")
+    :config
+    (defun org-journal-today ()
+      (interactive)
+      (org-journal-new-entry t)))
+
+  ;; Download images and screenshots to paste into org documents
+  (use-package org-download
+    :after org
+    :bind
+    (:map org-mode-map
+          (("s-Y" . org-download-screenshot)
+           ("s-y" . org-download-yank))))
+
+
 #+END_SRC
 * RSS
 Setup elfeed to read RSS and Atom feeds
@@ -424,17 +637,17 @@ Setup elfeed to read RSS and Atom feeds
 (use-package elfeed
   :ensure t
   :bind (:map elfeed-search-mode-map
-	      ("q" . bjm/elfeed-save-db-and-bury)
-	      ("Q" . bjm/elfeed-save-db-and-bury)
-	      ("m" . elfeed-toggle-star)
-	      ("M" . elfeed-toggle-star)
+              ("q" . bjm/elfeed-save-db-and-bury)
+              ("Q" . bjm/elfeed-save-db-and-bury)
+              ("m" . elfeed-toggle-star)
+              ("M" . elfeed-toggle-star)
             ("A" . bjm/elfeed-show-all)
             ("S" . bjm/elfeed-show-security)
             ("L" . bjm/elfeed-show-linux)
             ("T" . bjm/elfeed-show-technology)
             ("E" . bjm/elfeed-show-emacs)
             ("N" . bjm/elfeed-show-news)
-	    )
+            )
   )
 
 (use-package elfeed-goodies
