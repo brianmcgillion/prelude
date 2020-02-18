@@ -270,10 +270,11 @@ and the helm-bibtex configurations are all correct
 
   (setq org-default-notes-file (concat bmg/org-agenda-directory "/inbox.org"))
 
-  ;; max levels to show for refiling
-  (setq org-refile-targets '((org-agenda-files . (:maxlevel . 6))))
+  ;; ;; max levels to show for refiling
+  ;; (setq org-refile-targets '((org-agenda-files . (:maxlevel . 6))))
 
-  ;; setup org protocol for system wide setup
+  ;; ;
+                                          ; setup org protocol for system wide setup
   (require 'org-protocol)
 
   ;; Capture templates for: TODO tasks, Notes
