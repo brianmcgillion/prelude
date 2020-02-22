@@ -10,9 +10,11 @@
 ;;(package-install 'monokai-theme)
 (prelude-require-packages '(sr-speedbar))
 
+;;;; TODO SEMANTIC interfeers with company-anaconda mode
+;;;; Is it used in other modes
 ;; enable semantic
-(semantic-mode 1)
-(global-semantic-stickyfunc-mode 1)
+;;(semantic-mode 1)
+;;(global-semantic-stickyfunc-mode 1)
 
 ;; Use semantic symbols for tpeedbar
 (add-hook 'speedbar-load-hook (lambda () (require 'semantic/sb)))
@@ -34,7 +36,7 @@
 #+END_SRC
 * Code
 #+BEGIN_SRC emacs-lisp
-  (prelude-require-packages '(dtrt-indent flycheck-pyflakes elogcat ggtags))
+  (prelude-require-packages '(dtrt-indent elogcat ggtags py-autopep8))
   (setq byte-compile-warnings nil)
 
   ; Enable the dtrt-indent mode by default to determine the indentation for code
@@ -60,8 +62,14 @@
 
 ;; use python3 by default
 (setq python-shell-interpreter "python3")
-(add-hook 'python-mode-hook 'anaconda-eldoc-mode)
-(setq anaconda-mode-localhost-address "localhost")
+;;(setq anaconda-mode-localhost-address "localhost")
+(require 'py-autopep8)
+(add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
+
+#+END_SRC
+* Docker
+#+BEGIN_SRC  emacs-lisp
+(prelude-require-packages '(docker-tramp))
 
 ;;; Docker
 (use-package docker
@@ -69,11 +77,6 @@
 
 (use-package dockerfile-mode
   :mode "Dockerfile\\'")
-
-#+END_SRC
-* Docker
-#+BEGIN_SRC  emacs-lisp
-(prelude-require-packages '(docker-tramp))
 
 #+END_SRC
 * General
@@ -278,11 +281,10 @@ and the helm-bibtex configurations are all correct
 
   (setq org-default-notes-file (concat bmg/org-agenda-directory "/inbox.org"))
 
-  ;; ;; max levels to show for refiling
+  ;; max levels to show for refiling
   ;; (setq org-refile-targets '((org-agenda-files . (:maxlevel . 6))))
 
-  ;; ;
-                                          ; setup org protocol for system wide setup
+  ;; setup org protocol for system wide setup
   (require 'org-protocol)
 
   ;; Capture templates for: TODO tasks, Notes
@@ -566,7 +568,6 @@ and the helm-bibtex configurations are all correct
     (:map org-mode-map
           (("s-Y" . org-download-screenshot)
            ("s-y" . org-download-yank))))
-
 
 #+END_SRC
 * RSS
