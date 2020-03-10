@@ -361,7 +361,7 @@ and the helm-bibtex configurations are all correct
 ;;;
 ;;;
 
-(prelude-require-packages '(org-plus-contrib ob-translate org-cliplink))
+(prelude-require-packages '(org-plus-contrib ob-translate org-cliplink emacsql emacsql-sqlite))
 
 ;; Allow for inline tasks - i.e. tasks that are not headers
 (require 'org-inlinetask)
@@ -373,21 +373,11 @@ and the helm-bibtex configurations are all correct
 ;; Perform lazy searches in ORG, usign space as boolean
 (setq org-agenda-search-view-always-boolean t)
 
-;; use C-c c to start capture mode
-(require 'org-capture)
-(global-set-key (kbd "C-c c") 'org-capture)
+(defun bmg/org-archive-done-tasks ()
+  "Archive all done tasks."
+  (interactive)
+  (org-map-entries 'org-archive-subtree "/DONE" 'file))
 
-(use-package org-cliplink
-  :bind
-  ("C-c C" . 'bmg/org-capture-link)
-  :config
-  (defun bmg/org-capture-link ()
-    "Captures a link, and stores it in inbox."
-    (interactive)
-    (org-capture nil "l")))
-
-
-;; Setup org mode templates to refile all the notes
 (setq org-directory "~/Documents/org")
 
 (require 'find-lisp)
@@ -401,37 +391,48 @@ and the helm-bibtex configurations are all correct
 ;; max levels to show for refiling
 ;; (setq org-refile-targets '((org-agenda-files . (:maxlevel . 6))))
 
+(require 'org-capture)
+(global-set-key (kbd "C-c c") 'org-capture)
+
 ;; setup org protocol for system wide setup
 (require 'org-protocol)
 
-;; Capture templates for: TODO tasks, Notes
-(setq org-capture-templates
-      (quote ( ("t" "Todo" entry (file org-default-notes-file)
-                "* TODO %?\n")
-               ("l" "link" entry (file ,(concat jethro/org-agenda-directory "inbox.org"))
-                "* TODO %(org-cliplink-capture)" :immediate-finish t)
-               ("f" "File" entry (file org-default-notes-file)
-                "* TODO %F :FILE:\n" :immediate-finish t)
-               ("p" "Protocol" entry (file org-default-notes-file)
-                "* TODO %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?\n\n" :immediate-finish t)
-               ("L" "Protocol Link" entry (file org-default-notes-file)
-                "* TODO %? [[%:link][%:description]] \nCaptured On: %U\n\n" :immediate-finish t)
-               ("w" "Weekly Review" entry (file+olp+datetree ,(concat bmg/org-agenda-directory "reviews.org"))
-                (file ,(concat bmg/org-agenda-directory "templates/weekly_review.org"))))))
+;; Capture templates
+(add-to-list 'org-capture-templates
+             `("i" "inbox" entry (file org-default-notes-file)
+               "* TODO %?"))
 
-(setq bmg/org-agenda-reading-view
-      `("r" "Reading" todo ""
-        ((org-agenda-files '(,(concat bmg/org-agenda-directory "reading.org"))))))
+(add-to-list 'org-capture-templates
+             `("l" "link" entry (file org-default-notes-file)
+               "* TODO %(org-cliplink-capture)" :immediate-finish t))
 
-(add-to-list 'org-agenda-custom-commands `,bmg/org-agenda-reading-view)
+(add-to-list 'org-capture-templates
+             `("f" "File" entry (file org-default-notes-file)
+               "* TODO %F :FILE:\n" :immediate-finish t))
+
+(add-to-list 'org-capture-templates
+             `("p" "Protocol" entry (file org-default-notes-file)
+               "* TODO %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?\n\n" :immediate-finish t))
+
+(add-to-list 'org-capture-templates
+             `("L" "Protocol Link" entry (file org-default-notes-file)
+               "* TODO %? [[%:link][%:description]] \nCaptured On: %U\n\n" :immediate-finish t))
+
+(add-to-list 'org-capture-templates
+             `("w" "Weekly Review" entry (file+olp+datetree ,(concat bmg/org-agenda-directory "reviews.org"))
+               (file ,(concat bmg/org-agenda-directory "templates/weekly_review.org"))))
+
+(add-to-list 'org-agenda-custom-commands
+             `("r" "Reading" todo ""
+               ((org-agenda-files '(,(concat bmg/org-agenda-directory "reading.org"))))))
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
         (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)")))
 
-(setq org-log-done 'time)
-(setq org-log-into-drawer t)
-(setq org-log-state-notes-insert-after-drawers nil)
+(setq org-log-done 'time
+      org-log-into-drawer t
+      org-log-state-notes-insert-after-drawers nil)
 
 (setq org-tag-alist (quote (("@errand" . ?e)
                             ("@office" . ?o)
@@ -562,12 +563,10 @@ and the helm-bibtex configurations are all correct
                 (org-agenda-files '(,(concat bmg/org-agenda-directory "someday.org")
                                     ,(concat bmg/org-agenda-directory "projects.org")
                                     ,(concat bmg/org-agenda-directory "next.org")))
-                ;; (org-agenda-skip-function '(org-agenda-skip-entry-if 'deadline 'scheduled))
                 ))
          (todo "TODO"
                ((org-agenda-overriding-header "Projects")
                 (org-agenda-files '(,(concat bmg/org-agenda-directory "projects.org")))
-                ;; (org-agenda-skip-function #'bmg/org-agenda-skip-all-siblings-but-first)
                 ))
          (todo "TODO"
                ((org-agenda-overriding-header "One-off Tasks")
@@ -577,22 +576,8 @@ and the helm-bibtex configurations are all correct
 
 (add-to-list 'org-agenda-custom-commands `,bmg/org-agenda-todo-view)
 
-(defun bmg/org-agenda-skip-all-siblings-but-first ()
-  "Skip all but the first non-done entry."
-  (let (should-skip-entry)
-    (unless (or (org-current-is-todo)
-                (not (org-get-scheduled-time (point))))
-      (setq should-skip-entryld-skip-entry t))
-    (save-excursion
-      (while (and (not should-skip-entry) (org-goto-sibling t))
-        (when (org-current-is-todo)
-          (setq should-skip-entry t))))
-    (when should-skip-entry
-      (or (outline-next-heading)
-          (goto-char (point-max))))))
-
-(defun org-current-is-todo ()
-  (string= "TODO" (org-get-todo-state)))
+;; (defun org-current-is-todo ()
+;;   (string= "TODO" (org-get-todo-state)))
 
 (defun bmg/switch-to-agenda ()
   (interactive)
@@ -602,13 +587,13 @@ and the helm-bibtex configurations are all correct
 
 (setq org-columns-default-format "%40ITEM(Task) %Effort(EE){:} %CLOCKSUM(Time Spent) %SCHEDULED(Scheduled) %DEADLINE(Deadline)")
 
-(use-package org-pomodoro
-  :after org
-  :bind
-  (:map org-agenda-mode-map
-        (("I" . org-pomodoro)))
-  :custom
-  (org-pomodoro-format "%s"))
+;; ;; (use-package org-pomodoro
+;;  :after org
+;;  :bind
+;;  (:map org-agenda-mode-map
+;;        (("I" . org-pomodoro)))
+;;  :custom
+;;  (org-pomodoro-format "%s"))
 
 
 ;; use syntax highlighting in org code blocks
@@ -631,20 +616,28 @@ and the helm-bibtex configurations are all correct
    (translate . t)
    ))
 
-;;https://org-roam.readthedocs.io/en/develop/configuration/
+;; https://org-roam.readthedocs.io/en/develop/configuration/
 (use-package org-roam
-  :after org
   :load-path "~/.emacs.d/elisp/org-roam"
+  :commands (org-roam-build-cache)
   :hook
-  ((org-mode . org-roam-mode)
-   (after-init . org-roam--build-cache-async))
+  (after-init . org-roam-mode)
+  :bind (:map org-roam-mode-map
+              (("C-c z l" . org-roam)
+               ("C-c z f" . org-roam-find-file)
+               ("C-c z b" . org-roam-switch-to-buffer)
+               ("C-c z g" . org-roam-show-graph))
+              :map org-mode-map
+              (("C-c z i" . org-roam-insert)))
   :custom
-  (org-roam-directory (concat org-directory "/roam"))
-  :bind
-  ("C-c z l" . org-roam)
-  ("C-c z f" . org-roam-find-file)
-  ("C-c z g" . org-roam-show-graph)
-  ("C-c z i" . org-roam-insert))
+  (org-roam-directory (concat org-directory "/roam")))
+
+;;(use-package emacsql
+;;  :hook
+;;  (emacs-mode . emacsql-fix-vector-indentation)
+;;  :bind
+;;  (:map emacs-lisp-mode-map
+;;        (("C-c C-e" . emacsql-show-last-sql))))
 
 ;;Distinguish internal Roam links from external links
 (setq org-roam-link-title-format "R:%s")
@@ -685,6 +678,7 @@ and the helm-bibtex configurations are all correct
   (:map org-mode-map
         (("C-c s-Y" . org-download-screenshot)
          ("C-c s-y" . org-download-yank))))
+
 ;;;
 ;;;
 ;;; END_ORG
