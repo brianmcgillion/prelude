@@ -1,4 +1,4 @@
 [submodule "elisp/org-roam"]
 	path = elisp/org-roam
 	url = https://github.com/jethrokuan/org-roam/
-	branch = develop
+	branch = master

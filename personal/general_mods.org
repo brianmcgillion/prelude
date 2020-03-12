@@ -361,32 +361,40 @@ and the helm-bibtex configurations are all correct
 ;;;
 ;;;
 
-(prelude-require-packages '(org-plus-contrib ob-translate org-cliplink emacsql emacsql-sqlite))
+(prelude-require-packages '(org-plus-contrib ob-translate org-cliplink emacsql emacsql-sqlite deft))
 
 ;; Allow for inline tasks - i.e. tasks that are not headers
 (require 'org-inlinetask)
 
-(require 'org-agenda)
-
 (setq org-startup-indented t)
-
-;; Perform lazy searches in ORG, usign space as boolean
-(setq org-agenda-search-view-always-boolean t)
-
-(defun bmg/org-archive-done-tasks ()
-  "Archive all done tasks."
-  (interactive)
-  (org-map-entries 'org-archive-subtree "/DONE" 'file))
 
 (setq org-directory "~/Documents/org")
 
 (require 'find-lisp)
+(require 'org-agenda)
+;; Allow agenda to search the Roam directory for plain text keywords
+;; https://orgmode.org/worg/org-tutorials/advanced-searching.html
+(setq bmg/org-agenda-text-extra-directory (concat org-directory "/roam/"))
+(setq org-agenda-text-search-extra-files
+      (find-lisp-find-files bmg/org-agenda-text-extra-directory "\.org$"))
+
+;; Perform lazy searches in ORG, usign space as boolean
+(setq org-agenda-search-view-always-boolean t)
 
 (setq bmg/org-agenda-directory (concat org-directory "/gtd/"))
 (setq org-agenda-files
       (find-lisp-find-files bmg/org-agenda-directory "\.org$"))
 
 (setq org-default-notes-file (concat bmg/org-agenda-directory "/inbox.org"))
+
+;; archive the entries in a file called archive in the parent directory
+(setq org-archive-location (concat org-directory "/archive.org_archive::datetree/"))
+
+(defun bmg/org-archive-done-tasks ()
+  "Archive all done tasks."
+  (interactive)
+  (org-map-entries 'org-archive-subtree "/DONE" 'file))
+
 
 ;; max levels to show for refiling
 ;; (setq org-refile-targets '((org-agenda-files . (:maxlevel . 6))))
@@ -434,7 +442,7 @@ and the helm-bibtex configurations are all correct
       org-log-into-drawer t
       org-log-state-notes-insert-after-drawers nil)
 
-(setq org-tag-alist (quote (("@errand" . ?e)
+(setq org-tag-alist (quote (("@project" . ?e)
                             ("@office" . ?o)
                             ("@home" . ?h)
                             (:newline)
@@ -627,6 +635,9 @@ and the helm-bibtex configurations are all correct
 ;; Visualize the relationships with notes
 (setq org-roam-graphviz-executable "/usr/bin/dot")
 
+;; use helm completion for org-roam
+(setq org-roam-completion-system 'helm)
+
 ;;Search the files and manage them better with deft
 (use-package deft
   :after org
@@ -692,7 +703,7 @@ and the helm-bibtex configurations are all correct
 
 ;;functions to support syncing .elfeed between machines
 ;;makes sure elfeed reads index from disk before launching
-(defun bjm/elfeed-load-db-and-open ()
+(defun bmg/elfeed-load-db-and-open ()
   "Wrapper to load the elfeed db from disk before opening"
   (interactive)
   (elfeed-db-load)
@@ -700,11 +711,11 @@ and the helm-bibtex configurations are all correct
   (elfeed-search-update--force))
 
 ;; overload the elfeed keybinding to load the database
-(global-set-key (kbd "C-x w") 'bjm/elfeed-load-db-and-open)
+(global-set-key (kbd "C-x w") 'bmg/elfeed-load-db-and-open)
 
 
 ;;write to disk when quiting
-(defun bjm/elfeed-save-db-and-bury ()
+(defun bmg/elfeed-save-db-and-bury ()
   "Wrapper to save the elfeed db to disk before burying buffer"
   (interactive)
   (elfeed-db-save)
@@ -716,27 +727,27 @@ and the helm-bibtex configurations are all correct
 (eval-after-load 'elfeed-search
   '(define-key elfeed-search-mode-map (kbd "m") 'elfeed-toggle-star))
 
-(defun bjm/elfeed-show-all ()
+(defun bmg/elfeed-show-all ()
   (interactive)
   (bookmark-maybe-load-default-file)
   (bookmark-jump "elfeed-all"))
-(defun bjm/elfeed-show-security ()
+(defun bmg/elfeed-show-security ()
   (interactive)
   (bookmark-maybe-load-default-file)
   (bookmark-jump "elfeed-security"))
-(defun bjm/elfeed-show-linux ()
+(defun bmg/elfeed-show-linux ()
   (interactive)
   (bookmark-maybe-load-default-file)
   (bookmark-jump "elfeed-linux"))
-(defun bjm/elfeed-show-technology ()
+(defun bmg/elfeed-show-technology ()
   (interactive)
   (bookmark-maybe-load-default-file)
   (bookmark-jump "elfeed-technology"))
-(defun bjm/elfeed-show-emacs ()
+(defun bmg/elfeed-show-emacs ()
   (interactive)
   (bookmark-maybe-load-default-file)
   (bookmark-jump "elfeed-emacs"))
-(defun bjm/elfeed-show-news ()
+(defun bmg/elfeed-show-news ()
   (interactive)
   (bookmark-maybe-load-default-file)
   (bookmark-jump "elfeed-news"))
@@ -744,16 +755,16 @@ and the helm-bibtex configurations are all correct
 (use-package elfeed
   :ensure t
   :bind (:map elfeed-search-mode-map
-              ("q" . bjm/elfeed-save-db-and-bury)
-              ("Q" . bjm/elfeed-save-db-and-bury)
+              ("q" . bmg/elfeed-save-db-and-bury)
+              ("Q" . bmg/elfeed-save-db-and-bury)
               ("m" . elfeed-toggle-star)
               ("M" . elfeed-toggle-star)
-              ("A" . bjm/elfeed-show-all)
-              ("S" . bjm/elfeed-show-security)
-              ("L" . bjm/elfeed-show-linux)
-              ("T" . bjm/elfeed-show-technology)
-              ("E" . bjm/elfeed-show-emacs)
-              ("N" . bjm/elfeed-show-news)
+              ("A" . bmg/elfeed-show-all)
+              ("S" . bmg/elfeed-show-security)
+              ("L" . bmg/elfeed-show-linux)
+              ("T" . bmg/elfeed-show-technology)
+              ("E" . bmg/elfeed-show-emacs)
+              ("N" . bmg/elfeed-show-news)
               )
   )
 
