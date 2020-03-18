@@ -442,7 +442,7 @@ and the helm-bibtex configurations are all correct
       org-log-into-drawer t
       org-log-state-notes-insert-after-drawers nil)
 
-(setq org-tag-alist (quote (("@project" . ?e)
+(setq org-tag-alist (quote (("@project" . ?p)
                             ("@office" . ?o)
                             ("@home" . ?h)
                             (:newline)
