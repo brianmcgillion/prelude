@@ -154,6 +154,9 @@
 
 (prelude-require-packages '(google-translate gnutls vlf s))
 
+(setq user-full-name "Brian McGillion")
+(setq user-mail-address "brian@ssrc.tii.ae")
+
 (setenv "NO_PROXY" "127.0.0.1")
 (setenv "no_proxy" "127.0.0.1")
 
@@ -184,6 +187,17 @@
 
 ;; Add support for very large files
 (require 'vlf-setup)
+
+;; Enable remote editing with local configs
+(use-package tramp
+  :commands tramp-set-completion-function
+  :config
+  (setq tramp-default-method "ssh")
+  (setq tramp-use-ssh-controlmaster-options nil)
+  (tramp-set-completion-function
+   "ssh"
+   '((tramp-parse-sconfig "/etc/ssh_config")
+     (tramp-parse-sconfig "~/.ssh/config"))))
 
 ;;;
 ;;;
