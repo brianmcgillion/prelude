@@ -34,11 +34,10 @@
 (setq sr-speedbar-right-side nil) ;; set sr-speedbar to open on the left
 (setq speedbar-show-unknown-files t)
 
-(setq select-enable-clipboard t)
-
 (custom-set-variables '(speedbar-show-unknown-files t))
 
-(add-hook 'before-save-hook 'whitespace-cleanup)
+;; When starting a new frame make it maximized
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
 
 (require 'ansi-color)
 (defun display-ansi-colors ()
@@ -163,27 +162,24 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 (global-set-key (kbd "<f5>") 'revert-buffer)
 
+(setq select-enable-clipboard t)
+
+(add-hook 'before-save-hook 'whitespace-cleanup)
+
+;; Add handlers for certain extensions
+(add-to-list 'auto-mode-alist '("\\.te\\'" . m4-mode))
+
 (require 'gnutls)
 (add-to-list 'gnutls-trustfiles "/usr/local/etc/openssl/cert.pem")
 
 ; see if this needs to be hidden behind some OS specific test
 (setq mac-right-option-modifier nil)
 
-;; Fast navigation
-;(global-set-key (kbd "s-<left>") 'scroll-down-command)
-;(global-set-key (kbd "s-<right>") 'scroll-up-command)
-;(global-set-key (kbd "s-<up>") 'beginning-of-buffer)
-;(global-set-key (kbd "s-<down>") 'end-of-buffer)
-
-
 ;; Store some more frequently used files in the
 (set-register ?i '(file . "~/Documents/org/gtd/inbox.org"))
 (set-register ?d '(file . "~/Documents/org/decrypt.org"))
 (set-register ?e '(file . "~/.emacs.d/personal/general_mods.org"))
 (set-register ?l '(file . "~/Documents/org/library.bib"))
-
-;; Add handlers for certain extensions
-(add-to-list 'auto-mode-alist '("\\.te\\'" . m4-mode))
 
 ;; Add support for very large files
 (require 'vlf-setup)
