@@ -101,6 +101,14 @@
   :hook (company-mode . company-box-mode))
 
 (require 'company-box)
+
+;; rainbow
+;;(use-package rainbow-delimiters
+;;  :hook (prog-mode . rainbow-delimiters-mode))
+
+;;(use-package rainbow-identifiers
+;;  :hook (prog-mode . rainbow-identifiers-mode))
+
 ;; (use-package company-quickhelp
 ;;  ;; Quickhelp may incorrectly place tooltip towards end of buffer
 ;;  ;; See: https://github.com/expez/company-quickhelp/issues/72
@@ -513,7 +521,11 @@
                ((org-agenda-overriding-header "In Progress")
                 (org-agenda-files '(,(concat bmg/org-agenda-directory "someday.org")
                                     ,(concat bmg/org-agenda-directory "projects.org")
-                                    ,(concat bmg/org-agenda-directory "next.org")))))
+                                    ,(concat bmg/org-agenda-directory "next.org")
+                                    ,(concat bmg/org-agenda-directory "reading.org")))))
+         (todo "TODO"
+               ((org-agenda-overriding-header "Reading")
+                (org-agenda-files '(,(concat bmg/org-agenda-directory "reading.org")))))
          (todo "TODO"
                ((org-agenda-overriding-header "Projects")
                 (org-agenda-files '(,(concat bmg/org-agenda-directory "projects.org")))))
