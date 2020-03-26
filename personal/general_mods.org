@@ -684,7 +684,8 @@ and the helm-bibtex configurations are all correct
 (setq bmg/notes-path "~/Documents/org/roam/")
 
 ;;Helm-bibtex configuration options
-(setq bibtex-completion-bibliography bmg/bib-library)
+(setq bibtex-completion-bibliography
+      '("~/Documents/org/library.bib" "~/Documents/org/emacs_lit.bib"))
 (setq bibtex-completion-library-path bmg/papers-path)
 ;; Using a directory would enable a note per document
 (setq bibtex-completion-notes-path bmg/notes-path)
@@ -695,16 +696,9 @@ and the helm-bibtex configurations are all correct
 ;; entry to figure out which pdf to open
 (setq bibtex-completion-pdf-field "file")
 
-(setq reftex-default-bibliography '(bmg/bib-library))
-
-;; Both methods should support mendeley format
-;;(setq org-ref-open-pdf-function 'org-ref-get-mendeley-filename)
-(setq org-ref-open-pdf-function 'org-ref-get-pdf-filename-helm-bibtex)
-
-;; see org-ref for use of these variables
-(setq org-ref-bibliography-notes bmg/notes-path
-      org-ref-default-bibliography '(bmg/bib-library)
-      org-ref-pdf-directory bmg/papers-path)
+;;;
+;;; org ref initialization is moved to preload/preload.el
+;;;
 
 ;; Override the bibtex complete function to add parsing of the file name and removing the : :pdf parts of the string
 (with-eval-after-load 'bibtex-completion
